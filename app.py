@@ -1,5 +1,6 @@
 import random
 import streamlit as st
+from logic_utils import update_score, check_guess
 
 def get_range_for_difficulty(difficulty: str):
     if difficulty == "Easy":
@@ -28,41 +29,7 @@ def parse_guess(raw: str):
 
     return True, value, None
 
-#FIXME: incorrect hint logic
-def check_guess(guess, secret):
-    if guess == secret:
-        return "Win", "🎉 Correct!"
-
-    try:
-        if guess > secret:
-            return "Too High", "📉 Go LOWER!"  # BUG FIX: Swapped emoji - was backwards
-        else:
-            return "Too Low", "📈 Go HIGHER!"  # BUG FIX: Swapped emoji - was backwards
-    except TypeError:
-        g = str(guess)
-        if g == secret:
-            return "Win", "🎉 Correct!"
-        if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
-
-
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
-
-    if outcome == "Too Low":
-        return current_score - 5
-
-    return current_score
+# `check_guess` implementation moved to `logic_utils.py`
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -91,9 +58,9 @@ st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
-
+#FIXME: logic breaks here, start initial attempts when user first opens the game to be 8 not 7
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
